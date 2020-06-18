@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"go-grpc/greet/greetpb"
 	"time"
+	"io"
 )
 type server struct{}
 func (*server) Greet ( ctx context.Context, req * greetpb.GreetRequest  ) (* greetpb.GreetResponse,error){
@@ -33,6 +34,24 @@ func (*server) GreetManyTimes (req *greetpb.GreetManyTimesRequest, stream greetp
 		time.Sleep(1000*time.Millisecond)
 	}
 	return nil
+}
+
+func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer)  error {
+	fmt.Println("Long greet function was invoked")
+	result:="Hello"
+ for {
+	 req,err :=stream.Recv()
+	 if err == io.EOF{
+		stream.SendAndClose(&greetpb.LongGreetResponse{
+			Result :result,
+		})
+	 }
+	 if err != nil {
+		 log.Fatalf("Error : %v",err)
+	 }
+	 firstName:=req.GetGreeting().GetFirstName()
+	 result += firstName +"!    "
+ }
 }
 func main(){
 	fmt.Println("hello World")
