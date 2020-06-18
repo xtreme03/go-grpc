@@ -5,6 +5,7 @@ import ("fmt"
 	"go-grpc/calculator/calculatorpb"
 	"log"
 	"context"
+	"io"
 
 )
 
@@ -17,7 +18,8 @@ func main(){
 	}
 	defer conn.Close()
 	c:=calculatorpb.NewCalculateServiceClient(conn)
-	uninaryAPI(c)
+	//uninaryAPI(c)
+	serverStreamAPI(c)
 	
 }
 
@@ -29,10 +31,36 @@ func uninaryAPI(c calculatorpb.CalculateServiceClient){
 		},
 
 	}
+
+
+	
 	//fmt.Printf("Client %f",c)
 	res,err :=c.Sum(context.Background(),req)
 	if err != nil{
 		log.Fatal("Server Error")
 	}
 	fmt.Printf("Response : %v",res)
+}
+
+func serverStreamAPI(c calculatorpb.CalculateServiceClient){
+	fmt.Println("Call server stream Api")
+	req:=&calculatorpb.PrimeDeRequest{
+		Num: 150,
+	}
+	resStream,err :=c.PrimeDecomposition(context.Background(),req)
+	if err != nil {
+		log.Fatalf("Error server streaming %v",err)
+	}
+	for {
+		msg,err:=resStream.Recv()
+		if err == io.EOF{
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error: %v",err)
+		}
+		fmt.Println(msg.GetResult())
+
+
+}
 }

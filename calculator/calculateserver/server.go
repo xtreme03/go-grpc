@@ -19,6 +19,27 @@ func (*server) Sum ( ctx context.Context, req * calculatorpb.CalculateRequest  )
 	}
 	return res,nil
 }
+
+func (*server) PrimeDecomposition (req * calculatorpb.PrimeDeRequest,stream calculatorpb.CalculateService_PrimeDecompositionServer)  (error){
+	fmt.Println("Prime decomposition")
+	num:=req.GetNum()
+	fmt.Println(num)
+	k:=int32(2)
+	for num>1{
+		if num%k==0{
+			res:=&calculatorpb.PrimeDeResponse{
+				Result:k,
+			}
+			num=num/k
+			stream.Send(res)
+
+		} else {
+			k=k+1
+
+		}
+	}
+	return nil
+}
 func main(){
 	fmt.Println("hello World")
 	lis, err :=net.Listen("tcp", "0.0.0.0:50051")
