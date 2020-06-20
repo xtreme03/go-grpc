@@ -36,23 +36,70 @@ func (*server) GreetManyTimes (req *greetpb.GreetManyTimesRequest, stream greetp
 	return nil
 }
 
-func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer)  error {
-	fmt.Println("Long greet function was invoked")
-	result:="Hello"
- for {
-	 req,err :=stream.Recv()
-	 if err == io.EOF{
-		stream.SendAndClose(&greetpb.LongGreetResponse{
-			Result :result,
-		})
-	 }
-	 if err != nil {
-		 log.Fatalf("Error : %v",err)
-	 }
-	 firstName:=req.GetGreeting().GetFirstName()
-	 result += firstName +"!    "
- }
+// func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer)  error {
+// 	fmt.Println("Long greet function was invoked")
+// 	result:="Hello"
+//  for {
+// 	 req,err :=stream.Recv()
+// 	 if err == io.EOF{
+// 		stream.SendAndClose(&greetpb.LongGreetResponse{
+// 			Result :result,
+// 		})
+// 	 }
+// 	if err != nil {
+// 		 log.Fatalf("Error while reading client stream: %v",err)
+// 	 }
+// 	 firstName:=req.GetGreeting().GetFirstName()
+// 	 result += firstName +"!    "
+//  }
+// }
+func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
+	fmt.Printf("LongGreet function was invoked with a streaming request\n")
+	result := ""
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			// we have finished reading the client stream
+			return stream.SendAndClose(&greetpb.LongGreetResponse{
+				Result: result,
+			})
+		}
+		if err != nil {
+			log.Fatalf("Error while reading client stream: %v", err)
+		}
+
+		firstName := req.GetGreeting().GetFirstName()
+		result += "Hello " + firstName + "! "
+	}
 }
+
+
+func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) error {
+	fmt.Printf("GreetEveryone function was invoked with a streaming request\n")
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error while reading client stream: %v", err)
+			return err
+		}
+		firstName := req.GetGreeting().GetFirstName()
+		result := "Hello " + firstName + "! "
+
+		sendErr := stream.Send(&greetpb.GreetEveryoneResponse{
+			Result: result,
+		})
+		if sendErr != nil {
+			log.Fatalf("Error while sending data to client: %v", sendErr)
+			return sendErr
+		}
+	}
+
+}
+
 func main(){
 	fmt.Println("hello World")
 	lis, err :=net.Listen("tcp", "0.0.0.0:50051")
