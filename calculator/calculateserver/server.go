@@ -8,6 +8,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"go-grpc/calculator/calculatorpb"
+	"math"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 type server struct{}
 func (*server) Sum ( ctx context.Context, req * calculatorpb.CalculateRequest  ) (* calculatorpb.CalculateResponse,error){
@@ -40,6 +43,19 @@ func (*server) PrimeDecomposition (req * calculatorpb.PrimeDeRequest,stream calc
 		}
 	}
 	return nil
+}
+func (*server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Println("Received SquareRoot RPC")
+	number := req.GetNumber()
+	if number < 0 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("Received a negative number: %v", number),
+		)
+	}
+	return &calculatorpb.SquareRootResponse{
+		NumberRoot: math.Sqrt(float64(number)),
+	}, nil
 }
 func main(){
 	fmt.Println("hello World")
