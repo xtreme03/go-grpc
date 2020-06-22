@@ -6,6 +6,7 @@ import (
 	"net"
 	"log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"go-grpc/calculator/calculatorpb"
 )
 type server struct{}
@@ -47,6 +48,7 @@ func main(){
 		log.Fatalf("Failed to listen : %v",err)
 	}
 	s:= grpc.NewServer()
+	reflection.Register(s)
 	calculatorpb.RegisterCalculateServiceServer(s,&server{})
 
 	if err := s.Serve(lis); err!= nil{
