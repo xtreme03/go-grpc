@@ -33,6 +33,14 @@ type blogItem struct {
 	Content  string             `bson:"content"`
 	Title    string             `bson:"title"`
 }
+func dataToBlogPb(data *blogItem) *blogpb.Blog {
+	return &blogpb.Blog{
+		Id:       data.ID.Hex(),
+		AuthorId: data.AuthorID,
+		Content:  data.Content,
+		Title:    data.Title,
+	}
+}
 
 func (*server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
 	fmt.Println("Create blog request")
@@ -99,14 +107,7 @@ func (*server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*blog
 	}, nil
 }
 
-func dataToBlogPb(data *blogItem) *blogpb.Blog {
-	return &blogpb.Blog{
-		Id:       data.ID.Hex(),
-		AuthorId: data.AuthorID,
-		Content:  data.Content,
-		Title:    data.Title,
-	}
-}
+
 
 func (*server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) (*blogpb.UpdateBlogResponse, error) {
 	fmt.Println("Update blog request")
