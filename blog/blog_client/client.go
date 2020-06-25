@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-
 	"github.com/simplesteph/grpc-go-course/blog/blogpb"
 	"google.golang.org/grpc"
 )
@@ -25,57 +24,26 @@ func main() {
 	c := blogpb.NewBlogServiceClient(cc)
 
 	// create Blog
-	fmt.Println("Creating the blog")
-	blog := &blogpb.Blog{
-		AuthorId: "Stephane",
-		Title:    "My First Blog",
-		Content:  "Content of the first blog",
-	}
-	createBlogRes, err := c.CreateBlog(context.Background(), &blogpb.CreateBlogRequest{Blog: blog})
-	if err != nil {
-		log.Fatalf("Unexpected error: %v", err)
-	}
-	fmt.Printf("Blog has been created: %v", createBlogRes)
-	blogID := createBlogRes.GetBlog().GetId()
+	blogID:=createBlog(c)
+	fmt.Println(blogID)
+	readBlog(c,"5ef2f09f04206c4f02990a7f")
+	updateBlog(c,"5ef2f09f04206c4f02990a7f")
+	deleteBlog(c,"5ef2f09f04206c4f02990a7f")
+	listBlog(c)
 
-	// read Blog
-	fmt.Println("Reading the blog")
 
-	_, err2 := c.ReadBlog(context.Background(), &blogpb.ReadBlogRequest{BlogId: "5bdc29e661b75adcac496cf4"})
-	if err2 != nil {
-		fmt.Printf("Error happened while reading: %v \n", err2)
-	}
+	// // delete Blog
+	// deleteRes, deleteErr := c.DeleteBlog(context.Background(), &blogpb.DeleteBlogRequest{BlogId: blogID})
 
-	readBlogReq := &blogpb.ReadBlogRequest{BlogId: blogID}
-	readBlogRes, readBlogErr := c.ReadBlog(context.Background(), readBlogReq)
-	if readBlogErr != nil {
-		fmt.Printf("Error happened while reading: %v \n", readBlogErr)
-	}
+	// if deleteErr != nil {
+	// 	fmt.Printf("Error happened while deleting: %v \n", deleteErr)
+	// }
+	// fmt.Printf("Blog was deleted: %v \n", deleteRes)
 
-	fmt.Printf("Blog was read: %v \n", readBlogRes)
-
-	// update Blog
-	newBlog := &blogpb.Blog{
-		Id:       blogID,
-		AuthorId: "Changed Author",
-		Title:    "My First Blog (edited)",
-		Content:  "Content of the first blog, with some awesome additions!",
-	}
-	updateRes, updateErr := c.UpdateBlog(context.Background(), &blogpb.UpdateBlogRequest{Blog: newBlog})
-	if updateErr != nil {
-		fmt.Printf("Error happened while updating: %v \n", updateErr)
-	}
-	fmt.Printf("Blog was updated: %v\n", updateRes)
-
-	// delete Blog
-	deleteRes, deleteErr := c.DeleteBlog(context.Background(), &blogpb.DeleteBlogRequest{BlogId: blogID})
-
-	if deleteErr != nil {
-		fmt.Printf("Error happened while deleting: %v \n", deleteErr)
-	}
-	fmt.Printf("Blog was deleted: %v \n", deleteRes)
-
-	// list Blogs
+	
+}
+func listBlog(c blogpb.BlogServiceClient) {
+// // list Blogs
 
 	stream, err := c.ListBlog(context.Background(), &blogpb.ListBlogRequest{})
 	if err != nil {
@@ -91,4 +59,63 @@ func main() {
 		}
 		fmt.Println(res.GetBlog())
 	}
+}
+func createBlog(c blogpb.BlogServiceClient) string{
+	fmt.Println("Creating the blog")
+	blog := &blogpb.Blog{
+		AuthorId: "Pallab",
+		Title:    "My First Blog",
+		Content:  "Content of the first blog",
+	}
+	createBlogRes, err := c.CreateBlog(context.Background(), &blogpb.CreateBlogRequest{Blog: blog})
+	if err != nil {
+		log.Fatalf("Unexpected error: %v", err)
+	}
+	fmt.Printf("Blog has been created: %v", createBlogRes)
+	blogID := createBlogRes.GetBlog().GetId()
+	fmt.Printf("%T",blogID)
+return blogID
+}
+
+func readBlog(c blogpb.BlogServiceClient,blogID string){
+	// read Blog
+	fmt.Println("Reading the blog")
+
+	_, err2 := c.ReadBlog(context.Background(), &blogpb.ReadBlogRequest{BlogId: blogID})
+	if err2 != nil {
+		fmt.Printf("Error happened while reading: %v \n", err2)
+	}
+
+	readBlogReq := &blogpb.ReadBlogRequest{BlogId: blogID}
+	readBlogRes, readBlogErr := c.ReadBlog(context.Background(), readBlogReq)
+	if readBlogErr != nil {
+		fmt.Printf("Error happened while reading: %v \n", readBlogErr)
+	}
+
+	fmt.Printf("Blog was read: %v \n", readBlogRes)
+}
+
+func updateBlog(c blogpb.BlogServiceClient, blogID string){
+		newBlog := &blogpb.Blog{
+		Id:       blogID,
+		AuthorId: "Changed Author",
+		Title:    "My First Blog (edited)",
+		Content:  "Content of the first blog, with some awesome additions!",
+	}
+	updateRes, updateErr := c.UpdateBlog(context.Background(), &blogpb.UpdateBlogRequest{Blog: newBlog})
+	if updateErr != nil {
+		fmt.Printf("Error happened while updating: %v \n", updateErr)
+	}
+	fmt.Printf("Blog was updated: %v\n", updateRes)
+}
+
+func deleteBlog(c blogpb.BlogServiceClient, blogID string){
+	// delete Blog
+	deleteRes, deleteErr := c.DeleteBlog(context.Background(), &blogpb.DeleteBlogRequest{BlogId: blogID})
+
+	if deleteErr != nil {
+		fmt.Printf("Error happened while deleting: %v \n", deleteErr)
+	}
+	fmt.Printf("Blog was deleted: %v \n", deleteRes)
+
 }
